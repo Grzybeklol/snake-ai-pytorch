@@ -2,6 +2,8 @@ import torch
 import random
 import numpy as np
 from collections import deque
+
+import model
 from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot
@@ -11,14 +13,14 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 class Agent:
-
-    def __init__(self):
+    def __init__(self, load_model=True, model_path='model/model.pth'):
         self.n_games = 0
-        self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.epsilon = 0  # randomness
+        self.gamma = 0.9  # discount rate
+        self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
+        self.model = Linear_QNet(11, 1024, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+
 
 
     def get_state(self, game):
@@ -88,7 +90,7 @@ class Agent:
         # random moves: tradeoff exploration / exploitation
         self.epsilon = 80 - self.n_games
         final_move = [0,0,0]
-        if random.randint(0, 200) < self.epsilon:
+        if random.randint(200, 400) < self.epsilon:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
@@ -106,6 +108,7 @@ def train():
     total_score = 0
     record = 0
     agent = Agent()
+    agent.model.load('model.pth')
     game = SnakeGameAI()
     while True:
         # get old state
@@ -130,9 +133,9 @@ def train():
             agent.n_games += 1
             agent.train_long_memory()
 
-            if score > record:
-                record = score
-                agent.model.save()
+            #if score > record:
+             #   record = score
+              #  agent.model.save()
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 

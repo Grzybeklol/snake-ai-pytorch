@@ -6,23 +6,31 @@ import os
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
-        super().__init__()
+        super(Linear_QNet, self).__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
-        self.linear2 = nn.Linear(hidden_size, output_size)
+        self.linear2 = nn.Linear(hidden_size, hidden_size)
+        self.linear3 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         x = F.relu(self.linear1(x))
-        x = self.linear2(x)
+        x = F.relu(self.linear2(x))
+        x = self.linear3(x)
         return x
+
+    def load(self, model_path):
+        model_folder_path = './model'
+        file_name = os.path.join(model_folder_path, model_path)
+        # Ensuring that the map_location is compatible with the device you are loading the model to
+        self.load_state_dict(torch.load(file_name, map_location=torch.device('cpu')))
+        print(f"Loaded model weights from {model_path}")
 
     def save(self, file_name='model.pth'):
         model_folder_path = './model'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
-
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
-
+        print('Saved')
 
 class QTrainer:
     def __init__(self, model, lr, gamma):
